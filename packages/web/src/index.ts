@@ -2,6 +2,7 @@ const modal = document.getElementById("modal") as HTMLDialogElement;
 const modalClose = document.getElementById("close")!;
 const help = document.getElementById("help")!;
 const search = document.getElementById("search")! as HTMLInputElement;
+const tableTbody = document.getElementById("table-tbody")!;
 
 /////////////////////////
 // URL State Management
@@ -66,6 +67,7 @@ modal.addEventListener("click", (e) => {
 // Handle Sorting
 ////////////////////
 let currentSort = { column: -1, direction: "asc" };
+let pinnedModels = new Set<string>();
 
 function sortTable(column: number, direction: "asc" | "desc") {
   const header = document.querySelectorAll("th.sortable")[column];
@@ -79,10 +81,10 @@ function sortTable(column: number, direction: "asc" | "desc") {
     order: direction,
   });
 
-  // sort rows
+  // sort rows (excluding pinned rows from sorting)
   const tbody = document.querySelector("table tbody")!;
   const rows = Array.from(
-    tbody.querySelectorAll("tr")
+    tbody.querySelectorAll("tr:not(.pinned-row)")
   ) as HTMLTableRowElement[];
   rows.sort((a, b) => {
     const aValue = getCellValue(a.cells[column], columnType);
@@ -104,7 +106,19 @@ function sortTable(column: number, direction: "asc" | "desc") {
 
     return direction === "asc" ? comparison : -comparison;
   });
-  rows.forEach((row) => tbody.appendChild(row));
+  // Insert sorted rows after pinned rows
+  const pinnedRows = tbody.querySelectorAll(".pinned-row");
+  const lastPinnedRow = pinnedRows[pinnedRows.length - 1];
+  
+  if (lastPinnedRow) {
+    let currentRow = lastPinnedRow;
+    rows.forEach((row) => {
+      currentRow.insertAdjacentElement('afterend', row);
+      currentRow = row;
+    });
+  } else {
+    rows.forEach((row) => tbody.appendChild(row));
+  }
 
   // update sort indicators
   const headers = document.querySelectorAll("th.sortable");
@@ -149,7 +163,7 @@ document.querySelectorAll("th.sortable").forEach((header) => {
 function filterTable(value: string) {
   const lowerCaseValue = value.toLowerCase();
   const rows = document.querySelectorAll(
-    "table tbody tr"
+    "table tbody tr:not(.pinned-row)"
   ) as NodeListOf<HTMLTableRowElement>;
 
   rows.forEach((row) => {
@@ -237,3 +251,55 @@ function initializeFromURL() {
 
 document.addEventListener("DOMContentLoaded", initializeFromURL);
 window.addEventListener("popstate", initializeFromURL);
+
+///////////////////////////////////
+// Handle Pin functionality
+///////////////////////////////////
+(window as any).togglePin = (providerId: string, modelId: string, checkbox: HTMLInputElement) => {
+  const modelKey = `${providerId}-${modelId}`;
+  
+  if (checkbox.checked) {
+    pinnedModels.add(modelKey);
+    addPinnedRow(providerId, modelId);
+  } else {
+    pinnedModels.delete(modelKey);
+    removePinnedRow(modelKey);
+  }
+  
+  updatePinnedContainerVisibility();
+};
+
+function addPinnedRow(providerId: string, modelId: string) {
+  const originalRow = document.querySelector(`tr[data-provider-id="${providerId}"][data-model-id="${modelId}"]`) as HTMLTableRowElement;
+  if (!originalRow) return;
+  
+  const clonedRow = originalRow.cloneNode(true) as HTMLTableRowElement;
+  clonedRow.classList.add('pinned-row');
+  clonedRow.setAttribute('data-pinned-key', `${providerId}-${modelId}`);
+  
+  // Update the checkbox in the pinned row to be checked and handle unpinning
+  const checkbox = clonedRow.querySelector('.pin-checkbox') as HTMLInputElement;
+  checkbox.checked = true;
+  checkbox.setAttribute('onchange', `togglePin('${providerId}', '${modelId}', this)`);
+  
+  // Insert the pinned row at the beginning of tbody
+  tableTbody.insertBefore(clonedRow, tableTbody.firstChild);
+}
+
+function removePinnedRow(modelKey: string) {
+  const pinnedRow = tableTbody.querySelector(`tr[data-pinned-key="${modelKey}"]`);
+  if (pinnedRow) {
+    pinnedRow.remove();
+  }
+  
+  // Also uncheck the original row's checkbox
+  const [providerId, modelId] = modelKey.split('-');
+  const originalCheckbox = document.querySelector(`tr[data-provider-id="${providerId}"][data-model-id="${modelId}"]:not(.pinned-row) .pin-checkbox`) as HTMLInputElement;
+  if (originalCheckbox) {
+    originalCheckbox.checked = false;
+  }
+}
+
+function updatePinnedContainerVisibility() {
+  // No longer needed since we're using a single table
+}

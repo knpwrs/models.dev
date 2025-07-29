@@ -158,6 +158,9 @@ export const Rendered = renderToString(
     <table>
       <thead>
         <tr>
+          <th>
+            Pin
+          </th>
           <th class="sortable" data-type="text">
             Provider <span class="sort-indicator"></span>
           </th>
@@ -245,7 +248,7 @@ export const Rendered = renderToString(
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="table-tbody">
         {Object.entries(Providers)
           .sort(([, providerA], [, providerB]) =>
             providerA.name.localeCompare(providerB.name)
@@ -256,7 +259,14 @@ export const Rendered = renderToString(
                 modelA.name.localeCompare(modelB.name)
               )
               .map(([modelId, model]) => (
-                <tr key={`${providerId}-${modelId}`}>
+                <tr key={`${providerId}-${modelId}`} data-provider-id={providerId} data-model-id={modelId}>
+                  <td class="pin-cell">
+                    <input
+                      type="checkbox"
+                      class="pin-checkbox"
+                      onchange={`togglePin('${providerId}', '${modelId}', this)`}
+                    />
+                  </td>
                   <td>{provider.name}</td>
                   <td>{model.name}</td>
                   <td>{providerId}</td>

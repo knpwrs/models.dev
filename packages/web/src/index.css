@@ -271,39 +271,39 @@ tbody {
     color: var(--color-text-tertiary);
   }
 
-  td:nth-child(1) {
+  td:nth-child(2) {
     font-weight: 500;
   }
 
-  td:nth-child(1),
   td:nth-child(2),
-  td:nth-child(5),
+  td:nth-child(3),
   td:nth-child(6),
-  td:nth-child(9),
+  td:nth-child(7),
   td:nth-child(10),
   td:nth-child(11),
   td:nth-child(12),
   td:nth-child(13),
-  td:nth-child(14) {
+  td:nth-child(14),
+  td:nth-child(15) {
     color: var(--color-text);
   }
 
-  td:nth-child(5),
   td:nth-child(6),
-  td:nth-child(15) {
+  td:nth-child(7),
+  td:nth-child(16) {
     font-size: 0.8125rem;
     font-family: var(--font-mono);
     text-transform: uppercase;
   }
 
-  td:nth-child(3),
   td:nth-child(4),
-  td:nth-child(9),
+  td:nth-child(5),
   td:nth-child(10),
   td:nth-child(11),
   td:nth-child(12),
   td:nth-child(13),
-  td:nth-child(14) {
+  td:nth-child(14),
+  td:nth-child(15) {
     font-size: 0.8125rem;
     font-family: var(--font-mono);
   }
@@ -526,4 +526,23 @@ dialog {
     }
   }
 
+}
+
+.pinned-row {
+  background-color: var(--color-surface) !important;
+  border-left: 3px solid var(--color-brand) !important;
+}
+
+.pin-cell {
+  text-align: center;
+  padding: 0.5rem 0.25rem !important;
+}
+
+.pin-checkbox {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.pin-checkbox:checked {
+  accent-color: var(--color-brand);
 }
